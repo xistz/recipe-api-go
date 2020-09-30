@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
+	"github.com/xistz/retailai-recipe-api/ping"
 )
 
 func main() {
@@ -29,6 +30,8 @@ func main() {
 	defer db.Close()
 
 	r := httprouter.New()
+
+	r.GET("/ping", ping.Handler)
 
 	log.Println("Listening on port", port)
 	log.Fatal(http.ListenAndServe(addr, r))
