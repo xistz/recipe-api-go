@@ -6,6 +6,7 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/handlers"
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
 	"github.com/xistz/retailai-recipe-api/ping"
@@ -33,6 +34,12 @@ func main() {
 
 	r.GET("/ping", ping.Handler)
 
+	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	log.Println("Listening on port", port)
-	log.Fatal(http.ListenAndServe(addr, r))
+	log.Fatal(
+		http.ListenAndServe(
+			addr,
+			handlers.RecoveryHandler()(loggedRouter),
+		),
+	)
 }
