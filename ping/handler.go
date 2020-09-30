@@ -11,7 +11,7 @@ type pingResponse struct {
 	Message string `json:"message"`
 }
 
-// Handler handles requests to /ping
+// Handler handles GET requests to /ping
 func Handler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	response := pingResponse{"pong"}
 
