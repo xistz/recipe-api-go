@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      target: base
+    volumes:
+      - .:/api
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    command: go run main.go
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 86w27cZ3vnMVET5j
+      MYSQL_DATABASE: recipes
+      MYSQL_USER: retailai
+      MYSQL_PASSWORD: zH4tAwEfMUL7x3nM
+    volumes:
+      - recipes_mysql_data:/var/lib/mysql
+
+volumes:
+  recipes_mysql_data:
+    driver_opts:
+      type: none
+      device: ${PWD}/.docker/volumes/db
+      o: bind
