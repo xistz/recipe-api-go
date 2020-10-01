@@ -16,5 +16,6 @@ func Handler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	response := pingResponse{"pong"}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(&response)
 }

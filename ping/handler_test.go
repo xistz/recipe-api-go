@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHandler(t *testing.T) {
+func TestPingHandler(t *testing.T) {
 	req := httptest.NewRequest("GET", "/ping", nil)
 	rec := httptest.NewRecorder()
 
