@@ -21,7 +21,10 @@ services:
       MYSQL_USER: retailai
       MYSQL_PASSWORD: zH4tAwEfMUL7x3nM
     volumes:
+      - .docker/services/db:/docker-entrypoint-initdb.d
       - recipes_mysql_data:/var/lib/mysql
+    ports:
+      - 3306:3306
 
 volumes:
   recipes_mysql_data:
