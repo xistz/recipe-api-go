@@ -11,6 +11,10 @@ RUN go mod download
 
 COPY . .
 
+FROM base as development
+
+RUN go build -o /out/recipe-api
+
 FROM base as builder
 
 RUN CGO_ENABLED=0 go build -o /out/recipe-api
