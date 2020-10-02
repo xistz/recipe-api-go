@@ -2,12 +2,20 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"testing"
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	mockFindQuery   = "^SELECT (.+) FROM recipes where"
+	mockInsertQuery = "INSERT INTO recipes"
+	mockDeleteQuery = "DELETE FROM recipes where"
+	mockUpdateQuery = "UPDATE recipes"
 )
 
 var columns = []string{
@@ -21,19 +29,17 @@ var columns = []string{
 	"updated_at",
 }
 
-func initDBMock() (*sql.DB, sqlmock.Sqlmock, *sqlmock.Rows) {
+func initDBMock() (*sql.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	rows := mock.NewRows(columns)
-
-	return db, mock, rows
+	return db, mock
 }
 
 func TestFindRecipe(t *testing.T) {
-	db, mock, rows := initDBMock()
+	db, mock := initDBMock()
 	defer db.Close()
 
 	expected := Recipe{
@@ -47,7 +53,7 @@ func TestFindRecipe(t *testing.T) {
 		time.Now(),
 	}
 
-	rows = rows.AddRow(
+	rows := sqlmock.NewRows(columns).AddRow(
 		expected.ID,
 		expected.Title,
 		expected.PreparationTime,
@@ -58,8 +64,8 @@ func TestFindRecipe(t *testing.T) {
 		expected.UpdatedAt,
 	)
 
-	mock.ExpectQuery("^SELECT \\* FROM recipes where id=\\?").WithArgs(1).WillReturnRows(rows)
-	mock.ExpectQuery("^SELECT \\* FROM recipes where id=\\?").WithArgs(1000).WillReturnRows(rows)
+	mock.ExpectQuery(mockFindQuery).WithArgs(1).WillReturnRows(rows)
+	mock.ExpectQuery(mockFindQuery).WithArgs(1000).WillReturnRows(rows)
 
 	t.Run("returns recipe with valid ID", func(t *testing.T) {
 		got, err := FindRecipe(db, expected.ID)
@@ -84,10 +90,10 @@ func TestFindRecipe(t *testing.T) {
 }
 
 func TestCreateRecipe(t *testing.T) {
-	db, mock, rows := initDBMock()
+	db, mock := initDBMock()
 	defer db.Close()
 
-	t.Run("returns created recipe", func(t *testing.T) {
+	t.Run("returns id of created recipe", func(t *testing.T) {
 		expected := Recipe{
 			1,
 			"Chicken Curry",
@@ -99,19 +105,7 @@ func TestCreateRecipe(t *testing.T) {
 			time.Now(),
 		}
 
-		rows = rows.AddRow(
-			expected.ID,
-			expected.Title,
-			expected.PreparationTime,
-			expected.Serves,
-			expected.Ingredients,
-			expected.Cost,
-			expected.CreatedAt,
-			expected.UpdatedAt,
-		)
-
-		mock.ExpectExec("INSERT INTO recipes").WillReturnResult(sqlmock.NewResult(1, 1))
-		mock.ExpectQuery("SELECT \\* FROM recipes where id=\\?").WithArgs(1).WillReturnRows(rows)
+		mock.ExpectExec(mockInsertQuery).WillReturnResult(sqlmock.NewResult(1, 1))
 
 		got, err := CreateRecipe(
 			db,
@@ -123,14 +117,87 @@ func TestCreateRecipe(t *testing.T) {
 		)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expected.ID, got.ID)
-		assert.Equal(t, expected.Title, got.Title)
-		assert.Equal(t, expected.PreparationTime, got.PreparationTime)
-		assert.Equal(t, expected.Serves, got.Serves)
-		assert.Equal(t, expected.Ingredients, got.Ingredients)
-		assert.Equal(t, expected.Cost, got.Cost)
-		assert.NotEmpty(t, got.CreatedAt)
-		assert.NotEmpty(t, got.UpdatedAt)
+		assert.NotEmpty(t, got)
+	})
+}
+
+func TestDeleteRecipe(t *testing.T) {
+	db, mock := initDBMock()
+	defer db.Close()
+
+	mock.ExpectExec(mockDeleteQuery).WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(mockDeleteQuery).WithArgs(1000).WillReturnResult(sqlmock.NewResult(0, 0))
+
+	t.Run("returns nil with valid id", func(t *testing.T) {
+		err := DeleteRecipe(db, 1)
+		assert.NoError(t, err)
 	})
 
+	t.Run("returns error with invalid id", func(t *testing.T) {
+		err := DeleteRecipe(db, 1000)
+		assert.True(t, errors.Is(err, errRecipeNotFound))
+	})
+}
+
+func TestUpdateRecipe(t *testing.T) {
+	db, mock := initDBMock()
+	defer db.Close()
+
+	updatedRecipe := Recipe{
+		ID:              1,
+		Title:           "Chicken Curry",
+		PreparationTime: "45 min",
+		Serves:          "3 people", // updated property
+		Ingredients:     "onion, chicken, seasoning",
+		Cost:            1000,
+	}
+
+	mock.ExpectExec(mockUpdateQuery).
+		WithArgs(
+			updatedRecipe.Title,
+			updatedRecipe.PreparationTime,
+			updatedRecipe.Serves,
+			updatedRecipe.Ingredients,
+			updatedRecipe.Cost,
+			updatedRecipe.ID,
+		).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(mockUpdateQuery).
+		WithArgs(
+			updatedRecipe.Title,
+			updatedRecipe.PreparationTime,
+			updatedRecipe.Serves,
+			updatedRecipe.Ingredients,
+			updatedRecipe.Cost,
+			1000,
+		).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+
+	t.Run("returns nil with valid id", func(t *testing.T) {
+
+		err := UpdateRecipe(
+			db,
+			updatedRecipe.ID,
+			updatedRecipe.Title,
+			updatedRecipe.PreparationTime,
+			updatedRecipe.Serves,
+			updatedRecipe.Ingredients,
+			updatedRecipe.Cost,
+		)
+		assert.NoError(t, err)
+	})
+
+	t.Run("returns err with invalid id", func(t *testing.T) {
+
+		err := UpdateRecipe(
+			db,
+			updatedRecipe.ID,
+			updatedRecipe.Title,
+			updatedRecipe.PreparationTime,
+			updatedRecipe.Serves,
+			updatedRecipe.Ingredients,
+			updatedRecipe.Cost,
+		)
+		assert.Error(t, err)
+	})
 }
