@@ -11,7 +11,7 @@ import (
 
 func TestPingHandler(t *testing.T) {
 	t.Run("returns ok when db is connected", func(t *testing.T) {
-		db, _, _ := initDBMock()
+		db, _ := initDBMock()
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
@@ -30,7 +30,7 @@ func TestPingHandler(t *testing.T) {
 	})
 
 	t.Run("returns service unavailable when db is not connected", func(t *testing.T) {
-		db, _, _ := initDBMock()
+		db, _ := initDBMock()
 		db.Close()
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
