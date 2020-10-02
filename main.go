@@ -5,34 +5,23 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
-	"github.com/jmoiron/sqlx"
-	"github.com/julienschmidt/httprouter"
-	"github.com/xistz/retailai-recipe-api/ping"
 )
 
 func main() {
 	// get env variables
-	dsn, ok := os.LookupEnv("DSN")
-	if !ok {
-		dsn = "retailai:zH4tAwEfMUL7x3nM@(db:3306)/recipes"
-	}
-	port, ok := os.LookupEnv("PORT")
-	if !ok {
-		port = "8080"
-	}
+	port, dbUser, dbPassword, dbHost, dbPort, dbName := getEnv()
+
 	addr := ":" + port
 
-	db, err := sqlx.Connect("mysql", dsn)
+	dbPool, err := initMySQLDB(dbUser, dbPassword, dbHost, dbPort, dbName)
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal(err)
 	}
-	defer db.Close()
 
-	r := httprouter.New()
+	r := http.NewServeMux()
 
-	r.GET("/ping", ping.Handler)
+	r.HandleFunc("/ping", pingHandler(dbPool))
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	log.Println("Listening on port", port)
