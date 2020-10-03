@@ -10,6 +10,6 @@ type Recipe struct {
 	Serves          string    `json:"serves"`
 	Ingredients     string    `json:"ingredients"`
 	Cost            int       `json:"cost"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	CreatedAt       time.Time `json:"-"`
+	UpdatedAt       time.Time `json:"-"`
 }
