@@ -45,10 +45,6 @@ const (
 	listQuery   = "SELECT * FROM recipes"
 )
 
-var (
-	errRecipeNotFound = errors.New("recipe not found")
-)
-
 func (s *mysqlStore) Ping() error {
 	err := s.db.Ping()
 	if err != nil {
@@ -106,17 +102,9 @@ func (s *mysqlStore) CreateRecipe(
 
 // DeleteRecipe deletes recipe at id
 func (s *mysqlStore) DeleteRecipe(id int64) error {
-	result, err := s.db.Exec(deleteQuery, id)
+	_, err := s.db.Exec(deleteQuery, id)
 	if err != nil {
 		return err
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return errRecipeNotFound
 	}
 
 	return nil
@@ -132,18 +120,9 @@ func (s *mysqlStore) UpdateRecipe(
 	cost int,
 ) error {
 
-	result, err := s.db.Exec(updateQuery, title, preparationTime, serves, ingredients, cost, id)
+	_, err := s.db.Exec(updateQuery, title, preparationTime, serves, ingredients, cost, id)
 	if err != nil {
 		return err
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if count != 1 {
-		return errRecipeNotFound
 	}
 
 	return nil

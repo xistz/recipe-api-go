@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"log"
 	"testing"
 	"time"
@@ -137,11 +136,6 @@ func TestDeleteRecipe(t *testing.T) {
 	t.Run("returns nil with valid id", func(t *testing.T) {
 		err := store.DeleteRecipe(1)
 		assert.NoError(t, err)
-	})
-
-	t.Run("returns error with invalid id", func(t *testing.T) {
-		err := store.DeleteRecipe(1000)
-		assert.True(t, errors.Is(err, errRecipeNotFound))
 	})
 }
 
