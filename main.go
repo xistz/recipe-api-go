@@ -19,9 +19,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	store := NewMySQLStore(dbPool)
+
 	r := http.NewServeMux()
 
-	r.HandleFunc("/ping", pingHandler(dbPool))
+	r.HandleFunc("/ping", PingHandler(store))
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	log.Println("Listening on port", port)

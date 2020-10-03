@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 )
@@ -10,7 +9,8 @@ type pingResponse struct {
 	Message string `json:"message"`
 }
 
-func pingHandler(db *sql.DB) http.HandlerFunc {
+// PingHandler handles GET requests to /ping
+func PingHandler(s Store) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
@@ -20,7 +20,7 @@ func pingHandler(db *sql.DB) http.HandlerFunc {
 		res := pingResponse{}
 		w.Header().Set("Content-Type", "application/json")
 
-		err := db.Ping()
+		err := s.Ping()
 		if err != nil {
 			res.Message = err.Error()
 

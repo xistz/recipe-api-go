@@ -10,13 +10,15 @@ import (
 )
 
 func TestPingHandler(t *testing.T) {
-	t.Run("returns ok when db is connected", func(t *testing.T) {
-		db, _ := initDBMock()
+	db, _ := initDBMock()
 
+	store := NewMySQLStore(db)
+
+	t.Run("returns ok when db is connected", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 
-		pingHandler(db)(rec, req)
+		PingHandler(store)(rec, req)
 
 		res := rec.Result()
 		defer res.Body.Close()
@@ -30,13 +32,12 @@ func TestPingHandler(t *testing.T) {
 	})
 
 	t.Run("returns service unavailable when db is not connected", func(t *testing.T) {
-		db, _ := initDBMock()
 		db.Close()
 
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 
-		pingHandler(db)(rec, req)
+		PingHandler(store)(rec, req)
 
 		res := rec.Result()
 		defer res.Body.Close()
