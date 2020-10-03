@@ -9,7 +9,7 @@ import (
 
 func initMySQLDB(dbUser, dbPassword, dbAddress, dbName string) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s)/%s?parseTime=true&reconnect=true",
+		"%s:%s@tcp(%s)/%s?parseTime=true",
 		dbUser, dbPassword, dbAddress, dbName,
 	)
 
