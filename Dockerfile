@@ -23,4 +23,4 @@ FROM scratch as deployment
 
 COPY --from=builder /out/recipe-api /recipe-api
 
-CMD ["/recipe-api"]
+ENTRYPOINT ["/recipe-api"]
