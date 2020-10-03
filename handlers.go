@@ -127,7 +127,7 @@ func CreateHandler(s Store) httprouter.Handle {
 
 		res.Message = "Recipe successfully created!"
 		res.Recipe = []*Recipe{recipe}
-		respondJSON(w, http.StatusCreated, res)
+		respondJSON(w, http.StatusOK, res)
 	}
 }
 
