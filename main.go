@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gorilla/handlers"
+	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
@@ -21,9 +22,9 @@ func main() {
 
 	store := NewMySQLStore(dbPool)
 
-	r := http.NewServeMux()
+	r := httprouter.New()
 
-	r.HandleFunc("/ping", PingHandler(store))
+	r.GET("/ping", PingHandler(store))
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	log.Println("Listening on port", port)

@@ -18,7 +18,7 @@ func TestPingHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 
-		PingHandler(store)(rec, req)
+		PingHandler(store)(rec, req, nil)
 
 		res := rec.Result()
 		defer res.Body.Close()
@@ -37,7 +37,7 @@ func TestPingHandler(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/ping", nil)
 		rec := httptest.NewRecorder()
 
-		PingHandler(store)(rec, req)
+		PingHandler(store)(rec, req, nil)
 
 		res := rec.Result()
 		defer res.Body.Close()

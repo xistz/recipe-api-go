@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 type pingResponse struct {
@@ -10,13 +11,9 @@ type pingResponse struct {
 }
 
 // PingHandler handles GET requests to /ping
-func PingHandler(s Store) http.HandlerFunc {
+func PingHandler(s Store) httprouter.Handle {
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, fmt.Sprintf("HTTP Method %s Not Allowed", r.Method), http.StatusMethodNotAllowed)
-			return
-		}
+	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		res := pingResponse{}
 		w.Header().Set("Content-Type", "application/json")
 
