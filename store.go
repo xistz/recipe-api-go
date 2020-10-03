@@ -10,6 +10,7 @@ const (
 	findQuery   = "SELECT * FROM recipes where id=?"
 	updateQuery = "UPDATE recipes SET title=?, making_time=?, serves=?, ingredients=?, cost=? WHERE id=?"
 	deleteQuery = "DELETE FROM recipes where id=?"
+	listQuery   = "SELECT * FROM recipes"
 )
 
 var (
@@ -107,4 +108,36 @@ func UpdateRecipe(
 	}
 
 	return nil
+}
+
+// ListRecipes returns a slice of recipes
+func ListRecipes(db *sql.DB) ([]*Recipe, error) {
+	recipes := make([]*Recipe, 0)
+
+	rows, err := db.Query(listQuery)
+	if err != nil {
+		return recipes, err
+	}
+
+	for rows.Next() {
+		var recipe Recipe
+
+		err := rows.Scan(
+			&recipe.ID,
+			&recipe.Title,
+			&recipe.PreparationTime,
+			&recipe.Serves,
+			&recipe.Ingredients,
+			&recipe.Cost,
+			&recipe.CreatedAt,
+			&recipe.UpdatedAt,
+		)
+		if err != nil {
+			return recipes, err
+		}
+
+		recipes = append(recipes, &recipe)
+	}
+
+	return recipes, nil
 }

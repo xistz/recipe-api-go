@@ -16,6 +16,7 @@ const (
 	mockInsertQuery = "INSERT INTO recipes"
 	mockDeleteQuery = "DELETE FROM recipes where"
 	mockUpdateQuery = "UPDATE recipes"
+	mockListQuery   = "^SELECT (.+) FROM recipes$"
 )
 
 var columns = []string{
@@ -200,4 +201,55 @@ func TestUpdateRecipe(t *testing.T) {
 		)
 		assert.Error(t, err)
 	})
+}
+
+func TestListRecipes(t *testing.T) {
+	db, mock := initDBMock()
+	defer db.Close()
+
+	t.Run("returns empty slice if db is empty", func(t *testing.T) {
+		rows := sqlmock.
+			NewRows(columns)
+
+		mock.ExpectQuery(mockListQuery).WillReturnRows(rows)
+
+		recipes, err := ListRecipes(db)
+
+		assert.NoError(t, err)
+		assert.Empty(t, recipes)
+	})
+
+	t.Run("returns slice of recipe pointers if db is not empty", func(t *testing.T) {
+		rows := sqlmock.
+			NewRows(columns).
+			AddRow(
+				1,
+				"Chicken Curry",
+				"45 min",
+				"4 people",
+				"onion, chicken, seasoning",
+				1000,
+				time.Now(),
+				time.Now(),
+			).
+			AddRow(
+				2,
+				"Rice Omelette",
+				"30 min",
+				"2 people",
+				"onion, egg, seasoning, soy sauce",
+				700,
+				time.Now(),
+				time.Now(),
+			)
+
+		mock.ExpectQuery(mockListQuery).WillReturnRows(rows)
+
+		recipes, err := ListRecipes(db)
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, recipes)
+
+	})
+
 }
