@@ -7,10 +7,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func initMySQLDB(dbUser, dbPassword, dbHost, dbPort, dbName string) (*sql.DB, error) {
+func initMySQLDB(dbUser, dbPassword, dbAddress, dbName string) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?parseTime=true",
-		dbUser, dbPassword, dbHost, dbPort, dbName,
+		"%s:%s@tcp(%s)/%s?parseTime=true&reconnect=true",
+		dbUser, dbPassword, dbAddress, dbName,
 	)
 
 	dbPool, err := sql.Open("mysql", dsn)

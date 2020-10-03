@@ -7,7 +7,7 @@ import (
 )
 
 // loads ENV or sets default values for the api
-func getEnv() (string, string, string, string, string, string) {
+func getEnv() (string, string, string, string, string) {
 	dbUser, ok := os.LookupEnv("DB_USER")
 	if !ok {
 		dbUser = "retailai"
@@ -16,13 +16,9 @@ func getEnv() (string, string, string, string, string, string) {
 	if !ok {
 		dbPassword = "zH4tAwEfMUL7x3nM"
 	}
-	dbHost, ok := os.LookupEnv("DB_HOST")
+	dbAddress, ok := os.LookupEnv("DB_ADDRESS")
 	if !ok {
-		dbHost = "db"
-	}
-	dbPort, ok := os.LookupEnv("DB_PORT")
-	if !ok {
-		dbPort = "3306"
+		dbAddress = "db:3306"
 	}
 	dbName, ok := os.LookupEnv("DB_NAME")
 	if !ok {
@@ -33,7 +29,7 @@ func getEnv() (string, string, string, string, string, string) {
 		port = "8080"
 	}
 
-	return port, dbUser, dbPassword, dbHost, dbPort, dbName
+	return port, dbUser, dbPassword, dbAddress, dbName
 }
 
 func respondJSON(w http.ResponseWriter, code int, body interface{}) {
