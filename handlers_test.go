@@ -26,7 +26,7 @@ func TestPingHandler(t *testing.T) {
 		assert.Equal(t, http.StatusOK, res.StatusCode)
 		assert.Equal(t, "application/json", res.Header.Get("Content-Type"))
 
-		var got pingResponse
+		var got recipeResponse
 		json.NewDecoder(res.Body).Decode(&got)
 		assert.Equal(t, "pong", got.Message)
 	})
