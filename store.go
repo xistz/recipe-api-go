@@ -5,6 +5,38 @@ import (
 	"errors"
 )
 
+// Store defines recipe store interface
+type Store interface {
+	Ping() error
+	FindRecipe(id int64) (*Recipe, error)
+	CreateRecipe(
+		title string,
+		preparationTime string,
+		serves string,
+		ingredients string,
+		cost int,
+	) (int64, error)
+	DeleteRecipe(id int64) error
+	UpdateRecipe(
+		id int64,
+		title string,
+		preparationTime string,
+		serves string,
+		ingredients string,
+		cost int,
+	) error
+	ListRecipes() ([]*Recipe, error)
+}
+
+// NewMySQLStore creates new recipe store using mysql
+func NewMySQLStore(db *sql.DB) Store {
+	return &mysqlStore{db}
+}
+
+type mysqlStore struct {
+	db *sql.DB
+}
+
 const (
 	insertQuery = "INSERT INTO recipes(title, making_time, serves, ingredients, cost) VALUES(?, ?, ?, ?, ?)"
 	findQuery   = "SELECT * FROM recipes where id=?"
@@ -17,11 +49,20 @@ var (
 	errRecipeNotFound = errors.New("recipe not found")
 )
 
+func (s *mysqlStore) Ping() error {
+	err := s.db.Ping()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // FindRecipe finds a recipe in the db with the given id
-func FindRecipe(db *sql.DB, id int64) (*Recipe, error) {
+func (s *mysqlStore) FindRecipe(id int64) (*Recipe, error) {
 	var recipe Recipe
 
-	err := db.QueryRow(findQuery, id).Scan(
+	err := s.db.QueryRow(findQuery, id).Scan(
 		&recipe.ID,
 		&recipe.Title,
 		&recipe.PreparationTime,
@@ -43,15 +84,14 @@ func FindRecipe(db *sql.DB, id int64) (*Recipe, error) {
 }
 
 // CreateRecipe creates a recipe in the db with tittle, preparation time, serves, ingredients, and cost
-func CreateRecipe(
-	db *sql.DB,
+func (s *mysqlStore) CreateRecipe(
 	title string,
 	preparationTime string,
 	serves string,
 	ingredients string,
 	cost int,
 ) (int64, error) {
-	result, err := db.Exec(insertQuery, title, preparationTime, serves, ingredients, cost)
+	result, err := s.db.Exec(insertQuery, title, preparationTime, serves, ingredients, cost)
 	if err != nil {
 		return 0, err
 	}
@@ -65,8 +105,8 @@ func CreateRecipe(
 }
 
 // DeleteRecipe deletes recipe at id
-func DeleteRecipe(db *sql.DB, id int64) error {
-	result, err := db.Exec(deleteQuery, id)
+func (s *mysqlStore) DeleteRecipe(id int64) error {
+	result, err := s.db.Exec(deleteQuery, id)
 	if err != nil {
 		return err
 	}
@@ -83,8 +123,7 @@ func DeleteRecipe(db *sql.DB, id int64) error {
 }
 
 // UpdateRecipe updates recipe at id with new details
-func UpdateRecipe(
-	db *sql.DB,
+func (s *mysqlStore) UpdateRecipe(
 	id int64,
 	title string,
 	preparationTime string,
@@ -93,7 +132,7 @@ func UpdateRecipe(
 	cost int,
 ) error {
 
-	result, err := db.Exec(updateQuery, title, preparationTime, serves, ingredients, cost, id)
+	result, err := s.db.Exec(updateQuery, title, preparationTime, serves, ingredients, cost, id)
 	if err != nil {
 		return err
 	}
@@ -111,10 +150,10 @@ func UpdateRecipe(
 }
 
 // ListRecipes returns a slice of recipes
-func ListRecipes(db *sql.DB) ([]*Recipe, error) {
+func (s *mysqlStore) ListRecipes() ([]*Recipe, error) {
 	recipes := make([]*Recipe, 0)
 
-	rows, err := db.Query(listQuery)
+	rows, err := s.db.Query(listQuery)
 	if err != nil {
 		return recipes, err
 	}

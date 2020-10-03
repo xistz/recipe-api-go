@@ -43,6 +43,8 @@ func TestFindRecipe(t *testing.T) {
 	db, mock := initDBMock()
 	defer db.Close()
 
+	store := NewMySQLStore(db)
+
 	expected := Recipe{
 		1,
 		"Chicken Curry",
@@ -69,7 +71,7 @@ func TestFindRecipe(t *testing.T) {
 	mock.ExpectQuery(mockFindQuery).WithArgs(1000).WillReturnRows(rows)
 
 	t.Run("returns recipe with valid ID", func(t *testing.T) {
-		got, err := FindRecipe(db, expected.ID)
+		got, err := store.FindRecipe(expected.ID)
 		assert.NoError(t, err)
 
 		assert.Equal(t, expected.ID, got.ID)
@@ -83,7 +85,7 @@ func TestFindRecipe(t *testing.T) {
 	})
 
 	t.Run("return nil with invalid ID", func(t *testing.T) {
-		got, err := FindRecipe(db, 1000)
+		got, err := store.FindRecipe(1000)
 		assert.NoError(t, err)
 
 		assert.Nil(t, got)
@@ -93,6 +95,8 @@ func TestFindRecipe(t *testing.T) {
 func TestCreateRecipe(t *testing.T) {
 	db, mock := initDBMock()
 	defer db.Close()
+
+	store := NewMySQLStore(db)
 
 	t.Run("returns id of created recipe", func(t *testing.T) {
 		expected := Recipe{
@@ -108,8 +112,7 @@ func TestCreateRecipe(t *testing.T) {
 
 		mock.ExpectExec(mockInsertQuery).WillReturnResult(sqlmock.NewResult(1, 1))
 
-		got, err := CreateRecipe(
-			db,
+		got, err := store.CreateRecipe(
 			expected.Title,
 			expected.PreparationTime,
 			expected.Serves,
@@ -126,16 +129,18 @@ func TestDeleteRecipe(t *testing.T) {
 	db, mock := initDBMock()
 	defer db.Close()
 
+	store := NewMySQLStore(db)
+
 	mock.ExpectExec(mockDeleteQuery).WithArgs(1).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectExec(mockDeleteQuery).WithArgs(1000).WillReturnResult(sqlmock.NewResult(0, 0))
 
 	t.Run("returns nil with valid id", func(t *testing.T) {
-		err := DeleteRecipe(db, 1)
+		err := store.DeleteRecipe(1)
 		assert.NoError(t, err)
 	})
 
 	t.Run("returns error with invalid id", func(t *testing.T) {
-		err := DeleteRecipe(db, 1000)
+		err := store.DeleteRecipe(1000)
 		assert.True(t, errors.Is(err, errRecipeNotFound))
 	})
 }
@@ -143,6 +148,8 @@ func TestDeleteRecipe(t *testing.T) {
 func TestUpdateRecipe(t *testing.T) {
 	db, mock := initDBMock()
 	defer db.Close()
+
+	store := NewMySQLStore(db)
 
 	updatedRecipe := Recipe{
 		ID:              1,
@@ -176,8 +183,7 @@ func TestUpdateRecipe(t *testing.T) {
 
 	t.Run("returns nil with valid id", func(t *testing.T) {
 
-		err := UpdateRecipe(
-			db,
+		err := store.UpdateRecipe(
 			updatedRecipe.ID,
 			updatedRecipe.Title,
 			updatedRecipe.PreparationTime,
@@ -190,8 +196,7 @@ func TestUpdateRecipe(t *testing.T) {
 
 	t.Run("returns err with invalid id", func(t *testing.T) {
 
-		err := UpdateRecipe(
-			db,
+		err := store.UpdateRecipe(
 			updatedRecipe.ID,
 			updatedRecipe.Title,
 			updatedRecipe.PreparationTime,
@@ -207,13 +212,15 @@ func TestListRecipes(t *testing.T) {
 	db, mock := initDBMock()
 	defer db.Close()
 
+	store := NewMySQLStore(db)
+
 	t.Run("returns empty slice if db is empty", func(t *testing.T) {
 		rows := sqlmock.
 			NewRows(columns)
 
 		mock.ExpectQuery(mockListQuery).WillReturnRows(rows)
 
-		recipes, err := ListRecipes(db)
+		recipes, err := store.ListRecipes()
 
 		assert.NoError(t, err)
 		assert.Empty(t, recipes)
@@ -245,7 +252,7 @@ func TestListRecipes(t *testing.T) {
 
 		mock.ExpectQuery(mockListQuery).WillReturnRows(rows)
 
-		recipes, err := ListRecipes(db)
+		recipes, err := store.ListRecipes()
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, recipes)
