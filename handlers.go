@@ -10,7 +10,7 @@ import (
 
 type recipeRequest struct {
 	Title           *string `json:"title"`
-	PreparationTime *string `json:"preparation_time"`
+	PreparationTime *string `json:"making_time"`
 	Serves          *string `json:"serves"`
 	Ingredients     *string `json:"ingredients"`
 	Cost            *int    `json:"cost"`
@@ -104,14 +104,10 @@ func CreateHandler(s Store) httprouter.Handle {
 			return
 		}
 
-		if req.Title == nil ||
-			req.PreparationTime == nil ||
-			req.Serves == nil ||
-			req.Ingredients == nil ||
-			req.Cost == nil {
+		if req.Title == nil || req.PreparationTime == nil || req.Serves == nil || req.Ingredients == nil || req.Cost == nil {
 			res.Message = "Recipe creation failed!"
 			res.Required = "title, preparation_time, serves, ingredients, cost"
-			respondJSON(w, http.StatusBadRequest, res)
+			respondJSON(w, http.StatusOK, res)
 			return
 		}
 
