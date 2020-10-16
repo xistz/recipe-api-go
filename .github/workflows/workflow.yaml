@@ -62,7 +62,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs:
-      - build-deploy
+      - build
 
     steps:
       - name: Release
